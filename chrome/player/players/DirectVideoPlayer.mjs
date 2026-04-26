@@ -8,6 +8,17 @@ export default class DirectVideoPlayer extends EventEmitter {
     this.client = client;
 
     this.video = document.createElement(config?.isAudioOnly ? 'audio' : 'video');
+
+    // ✅ AUTOPLAY CONFIG
+    this.video.autoplay = true;
+    this.video.muted = true; // required for mobile autoplay
+    this.video.playsInline = true;
+
+    // iOS safari compatibility
+    this.video.setAttribute('webkit-playsinline', 'true');
+
+    // internal flag for fullscreen (used externally if needed)
+    this._fsTriggered = false;
   }
 
   load() {
@@ -18,13 +29,16 @@ export default class DirectVideoPlayer extends EventEmitter {
     return this.client;
   }
 
-
   async setup() {
     const preEvents = new EventEmitter();
     const emitterRelay = new EmitterRelay([preEvents, this]);
     VideoUtils.addPassthroughEventListenersToVideo(this.video, emitterRelay);
-  }
 
+    // ✅ FORCE AUTOPLAY when ready
+    this.video.addEventListener('loadeddata', () => {
+      this.video.play().catch(() => {});
+    });
+  }
 
   getVideo() {
     return this.video;
@@ -33,6 +47,13 @@ export default class DirectVideoPlayer extends EventEmitter {
   async setSource(source) {
     this.source = source;
     this.video.src = source.url;
+
+    // ✅ ensure autoplay triggers on every new source
+    this.video.load();
+
+    setTimeout(() => {
+      this.video.play().catch(() => {});
+    }, 0);
   }
 
   getSource() {
@@ -57,7 +78,6 @@ export default class DirectVideoPlayer extends EventEmitter {
 
     this.emit(DefaultPlayerEvents.DESTROYED);
   }
-
 
   set currentTime(value) {
     this.video.currentTime = value;
@@ -96,7 +116,6 @@ export default class DirectVideoPlayer extends EventEmitter {
   }
 
   async saveVideo(options) {
-
 
   }
 
