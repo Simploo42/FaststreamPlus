@@ -463,7 +463,18 @@ export class InterfaceController {
     let lastSideTapRight = 0;
     DOMElements.videoContainer.addEventListener('click', (e) => {
       clearTimeout(holdTimeout);
-      if (lastSpeed !== null) {
+      // ✅ AUTO FULLSCREEN ON FIRST TAP (NO CONSTRUCTOR NEEDED)
+    if (!this._autoFullscreenDone) {
+    this._autoFullscreenDone = true;
+
+    try {
+      const action = this.client?.options?.singleClickAction;
+
+      if (action !== ClickActions.FULLSCREEN && !document.fullscreenElement) {
+        this.fullscreenToggle(true);
+      }
+    } catch (e) {}
+      if (lastSpeed !== null  clearTimeout(holdTimeout
         stopSpeedUp();
         return;
       }
